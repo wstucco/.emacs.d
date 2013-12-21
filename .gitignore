@@ -7,3 +7,4 @@ el-get
 el-get-backup-*
 tramp
 *~
+mu4e.el
