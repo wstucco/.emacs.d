@@ -1,0 +1,9 @@
+.smex-items
+abbrev_defs
+url
+backups
+auto-save-list
+el-get
+el-get-backup-*
+tramp
+*~
