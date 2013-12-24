@@ -53,37 +53,77 @@
 ;; tab-widths
 (setq coffee-tab-width 2)
 
+;; enable flycheck for all supported buffers
+(require 'flycheck )
+(add-hook 'after-init-hook #'global-flycheck-mode)
+
 ;; go mode
 
-(setenv "GOPATH" "/Users/maks/projects/go")
+(setenv "GOPATH" (expand-file-name "~/projects/go"))
 (setenv "GOROOT" "/usr/local/go")
 (setenv "PATH" (concat (getenv "PATH") ":" (concat (getenv "GOROOT") "/bin") ":" (concat (getenv "GOPATH") "/bin")))
 (setq exec-path (append exec-path (concat (getenv "GOPATH") "/bin")))
 
 (require 'go-mode)
 
-
 (eval-after-load "go-mode"
   '(progn
-    (add-hook 'go-mode-hook 'my-go-mode-hook)
+    (add-hook 'go-mode-hook 'on-go-mode)
 
     ;; enable autocomplete for go-mode
-    (require 'go-autocomplete) 
+    (require 'go-autocomplete)
     (require 'auto-complete-config)
 
-    ;; flymake
-    (add-to-list 'load-path (concat (getenv "GOPATH") "/src/github.com/dougm/goflymake"))
-    (require 'go-flycheck)
-    (require 'go-flymake)
-    (eval-after-load 'flymake '(require 'flymake-cursor))
+    ;; enable flycheck color mode
+    ; (require 'flycheck-color-mode-line)
+    ; (eval-after-load "flycheck"
+    ;   '(add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode))
 ))
 
-(defun my-go-mode-hook ()
+(defun on-go-mode ()
   ; format before saving
   (setq gofmt-command "goimports") ;; run goimports instead of gofmt
   (add-hook 'before-save-hook 'gofmt-before-save) ;
 
-  (global-auto-complete-mode t) 
+  (global-auto-complete-mode t)
   (setq tab-width 2 indent-tabs-mode nil)
+
+  (flycheck-mode)
 )
 
+(defun go-run-tests-on-save ()
+  "After saving a go file, run tests"
+  (interactive)
+  (when (equal major-mode 'go-mode)
+    (if buffer-file-name
+      (let
+        ((patchbuf (get-buffer-create "*Go test Output*"))
+        (errbuf (get-buffer-create "*Go test Errors*"))
+        (coding-system-for-read 'utf-8)
+        (coding-system-for-write 'utf-8))
+
+        (with-current-buffer errbuf
+          (setq buffer-read-only nil)
+          (erase-buffer))
+        (with-current-buffer patchbuf
+          (toggle-read-only nil)
+          (erase-buffer))
+
+     ;   ; (if (zerop (call-process "go" nil patchbuf nil "test" "-v"))
+      ;   ;   (message "tests executed banana")))
+
+        (with-current-buffer patchbuf
+          (call-process "go" nil patchbuf nil "test" "./...")
+          (compilation-mode)
+          (require 'ansi-color)
+          (ansi-color-apply-on-region (point-min) (point-max)))
+        ; (with-current-buffer patchbuf
+        ;   (ansi-color-apply-on-region (point-min) (point-max)))
+        (display-buffer patchbuf)
+        (message "go tests executed")
+
+      )
+    )
+  )
+)
+;;(add-hook 'after-save-hook 'go-run-tests-on-save)

@@ -23,7 +23,7 @@
 
 (setq my-packages
   (append
-   '(el-get smex flymake flymake-cursor flycheck paredit yasnippet inf-ruby rvm ruby-compilation
+   '(el-get smex flycheck paredit yasnippet inf-ruby rvm ruby-compilation
     magit haml-mode flymake-haml bundler sass-mode coffee-mode php-mode-improved powerline
     smarty-mode idle-highlight-mode apache-mode lua-mode yaml-mode web-mode
     color-theme-solarized rainbow-mode exec-path-from-shell
